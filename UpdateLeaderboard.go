@@ -14,19 +14,16 @@
 	{{$isSet:= 0}}
 	{{if gt $uLVL $lb.lowest}}
 		{{range $i, $e:= $lb.entries}}
-			{{- if and (not (eq .uID $member.User.ID)) (lt $i $maxEntry) $isSet}}
+			{{- if and (not (eq .uID $member.User.ID)) (lt (len $newLB) $maxEntry) $isSet}}
 				{{- $newLB = ($newLB.Append .)}}
 				{{- $lowest = .uLVL}}
 			{{- else if gt $mLVL .uLVL}}
-				{{- if eq .uID $member.User.ID}}
+				{{- if or (eq .uID $member.User.ID) (ge (len $newLB) $maxEntry)}}
 					{{- $newLB = ($newLB.Append $uEntry)}}
 					{{- $lowest = $uLVL}}
 				{{- else if lt (len $newLB) $maxEntry}}
 					{{- $newLB = ($newLB.AppendSlice (cslice $uEntry .))}}
 					{{- $lowest = .uLVL}}
-				{{- else}}
-					{{- $newLB = ($newLB.Append $uEntry)}}
-					{{- $lowest = $uLVL}}
 				{{- end}}
 				{{- $isSet = 1}}
 			{{- end -}}
