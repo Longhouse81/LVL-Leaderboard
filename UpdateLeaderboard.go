@@ -7,6 +7,7 @@
 
 {{/*update leaderboard if needed*/}}
 {{$lb:= ""}}
+{{$uEntry:= sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel}}
 {{if ($lb =sdict (or (dbGet 0 "LeaderBoard").Value sdict))}}{{/*load leaderboard data if availble*/}}
 	{{$newLB:= cslice}}
 	{{$lowest:= 0}}
@@ -15,14 +16,13 @@
 		{{range $i, $e:= $lb.entries}}
 			{{- if and (gt $userLevel .lvl) (not $isSet)}}
 				{{- if eq .userid $member.User.ID}}
-					{{- $newLB = ($newLB.Append (sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel))}}
+					{{- $newLB = ($newLB.Append $uEntry)}}
 					{{- $isSet = 1}}
 				{{- else}}
 					{{- if lt $maxEntry (len $newLB)}}
-						{{- $member:= (getMember .userid)}}
-						{{- $newLB = ($newLB.AppendSlice (cslice (sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel) .))}}
+						{{- $newLB = ($newLB.AppendSlice (cslice $uEntry .))}}
 					{{- else}}
-						{{- $newLB = ($newLB.Append (sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel))}}
+						{{- $newLB = ($newLB.Append $uEntry)}}
 					{{- end}}
 					{{- $isSet = 1}}
 				{{- end}}
@@ -31,18 +31,18 @@
 			{{- end}}
 			{{- if or (eq (sub (len $lb.entries) 1) $i) (eq (sub $maxEntry 1) $i)}}
 				{{- if and (not $isSet) (le (len $newLB) $maxEntry)}}
-					{{- $newLB = ($newLB.Append (sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel))}}
+					{{- $newLB = ($newLB.Append $uEntry)}}
 				{{- end}}
 				{{- $lowest = (index $newLB (sub (len $newLB) 1)).lvl}}
 			{{- end -}}
 		{{else}}
-			{{$newLB = ($newLB.Append (sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel))}}
+			{{$newLB = ($newLB.Append $uEntry)}}
 			{{$lowest = $userLevel}}
 		{{end}}
 		{{$lb = sdict "length" (len $newLB) "lowest" $lowest "entries" $newLB}}
 	{{end}}
 {{else}}
-	{{$lb = sdict "length" 1 "lowest" $userLevel "entries" (cslice (sdict "userid" $member.User.ID "username" (or $member.Nick $member.User.Username) "lvl" $userLevel))}}
+	{{$lb = sdict "length" 1 "lowest" $userLevel "entries" (cslice $uEntry)}}
 {{end}}
 {{if $lb}}
 	{{dbSet 0 "LeaderBoard" $lb}}
