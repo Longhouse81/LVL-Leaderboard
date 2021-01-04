@@ -11,34 +11,32 @@
 {{if ($lb =sdict (or (dbGet 0 "LeaderBoard").Value sdict))}}{{/*load leaderboard data if availble*/}}
 	{{$newLB:= cslice}}
 	{{$lowest:= 0}}
-	{{if or (gt $uLVL $lb.lowest) (lt $lb.length $maxEntry)}}
-		{{$isSet:= 0}}
+	{{$isSet:= 0}}
+	{{if gt $uLVL $lb.lowest}}
 		{{range $i, $e:= $lb.entries}}
-			{{- if and (gt $mLVL .uLVL) (not $isSet)}}
+			{{- if and (not (eq .uID $member.User.ID)) (lt $i $maxEntry) $isSet}}
+				{{- $newLB = ($newLB.Append .)}}
+				{{- $lowest = .uLVL}}
+			{{- else if gt $mLVL .uLVL}}
 				{{- if eq .uID $member.User.ID}}
 					{{- $newLB = ($newLB.Append $uEntry)}}
-					{{- $isSet = 1}}
+					{{- $lowest = $uLVL}}
+				{{- else if lt (len $newLB) $maxEntry}}
+					{{- $newLB = ($newLB.AppendSlice (cslice $uEntry .))}}
+					{{- $lowest = .uLVL}}
 				{{- else}}
-					{{- if lt $maxEntry (len $newLB)}}
-						{{- $newLB = ($newLB.AppendSlice (cslice $uEntry .))}}
-					{{- else}}
-						{{- $newLB = ($newLB.Append $uEntry)}}
-					{{- end}}
-					{{- $isSet = 1}}
-				{{- end}}
-			{{- else if and (not (eq .uID $member.User.ID)) (lt $i $maxEntry)}}
-				{{- $newLB = ($newLB.Append .)}}
-			{{- end}}
-			{{- if or (eq (sub (len $lb.entries) 1) $i) (eq (sub $maxEntry 1) $i)}}
-				{{- if and (not $isSet) (le (len $newLB) $maxEntry)}}
 					{{- $newLB = ($newLB.Append $uEntry)}}
+					{{- $lowest = $uLVL}}
 				{{- end}}
-				{{- $lowest = (index $newLB (sub (len $newLB) 1)).uLVL}}
+				{{- $isSet = 1}}
 			{{- end -}}
-		{{else}}
-			{{$newLB = ($newLB.Append $uEntry)}}
-			{{$lowest = $uLVL}}
 		{{end}}
+	{{else if lt $lb.length $maxEntry}}
+		{{$newLB = ($lb.entries).Append $uEntry}}
+		{{$lowest = $uLVL}}
+		{{$isSet = 1}}
+	{{end}}
+	{{if $isSet}}
 		{{$lb = sdict "length" (len $newLB) "lowest" $lowest "entries" $newLB}}
 	{{end}}
 {{else}}
