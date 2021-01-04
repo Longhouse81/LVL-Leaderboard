@@ -17,7 +17,7 @@
 			{{- if and (not (eq .uID $member.User.ID)) (lt (len $newLB) $maxEntry) $isSet}}
 				{{- $newLB = ($newLB.Append .)}}
 				{{- $lowest = .uLVL}}
-			{{- else if gt $mLVL .uLVL}}
+			{{- else if gt $uLVL .uLVL}}
 				{{- if or (eq .uID $member.User.ID) (ge (len $newLB) $maxEntry)}}
 					{{- $newLB = ($newLB.Append $uEntry)}}
 					{{- $lowest = $uLVL}}
